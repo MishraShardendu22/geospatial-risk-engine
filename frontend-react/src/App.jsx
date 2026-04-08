@@ -5,6 +5,15 @@ import SummaryPanel from "./components/SummaryPanel";
 import RawDataPanel from "./components/RawDataPanel";
 import { analyzeLand, downloadReportJson, downloadReportPdf, getTrace } from "./services/api";
 
+const defaultFormState = {
+  latitude: "",
+  longitude: "",
+  surveyNumber: "",
+  villageId: "",
+  pincode: "",
+  surveyType: "parcel",
+};
+
 function saveBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -27,6 +36,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [report, setReport] = useState(null);
   const [trace, setTrace] = useState(null);
+  const [form, setForm] = useState(defaultFormState);
   const [input, setInput] = useState(null);
 
   const headerText = useMemo(
@@ -58,6 +68,24 @@ export default function App() {
       setLoading(false);
     }
   }
+
+  function handleFormChange(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleMapLocationPick(location) {
+    if (!location) return;
+    setForm((prev) => ({
+      ...prev,
+      latitude: String(location.latitude),
+      longitude: String(location.longitude),
+    }));
+  }
+
+  const mapInput = {
+    latitude: form.latitude !== "" ? form.latitude : input?.latitude,
+    longitude: form.longitude !== "" ? form.longitude : input?.longitude,
+  };
 
   async function handleExportJson() {
     if (!report?.id) return;
@@ -98,7 +126,12 @@ export default function App() {
       {error && <div className="error-banner">{error}</div>}
 
       <section className="layout-main">
-        <InputForm onSubmit={handleAnalyze} loading={loading} />
+        <InputForm
+          onSubmit={handleAnalyze}
+          loading={loading}
+          form={form}
+          onFormChange={handleFormChange}
+        />
         <SummaryPanel
           report={report}
           onExportJson={handleExportJson}
@@ -108,7 +141,11 @@ export default function App() {
       </section>
 
       <section className="layout-secondary">
-        <MapPanel report={report} input={input} />
+        <MapPanel
+          report={report}
+          input={mapInput}
+          onPickLocation={handleMapLocationPick}
+        />
         <RawDataPanel trace={trace} />
       </section>
     </div>

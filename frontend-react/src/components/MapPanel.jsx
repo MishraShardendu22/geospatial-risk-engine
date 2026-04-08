@@ -1,4 +1,4 @@
-import { MapContainer, Marker, Polygon, TileLayer, Tooltip } from "react-leaflet";
+import { MapContainer, Marker, Polygon, TileLayer, Tooltip, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 
 const markerIcon = L.icon({
@@ -26,16 +26,38 @@ function geoJsonToLeafletPolygon(geometry) {
   return null;
 }
 
-export default function MapPanel({ report, input }) {
-  const lat = input?.latitude ?? 12.9716;
-  const lng = input?.longitude ?? 77.5946;
+function parseCoordinate(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function MapClickHandler({ onPickLocation }) {
+  useMapEvents({
+    click(event) {
+      if (!onPickLocation) return;
+      onPickLocation({
+        latitude: Number(event.latlng.lat.toFixed(6)),
+        longitude: Number(event.latlng.lng.toFixed(6)),
+      });
+    },
+  });
+
+  return null;
+}
+
+export default function MapPanel({ report, input, onPickLocation }) {
+  const lat = parseCoordinate(input?.latitude) ?? 12.9716;
+  const lng = parseCoordinate(input?.longitude) ?? 77.5946;
   const polygon = geoJsonToLeafletPolygon(report?.geometry);
   const color = riskColor(report?.riskClass);
 
   return (
     <div className="card map-card">
       <h2>Spatial Risk View</h2>
+      <p className="muted">Click anywhere on the map to fill latitude and longitude in the form.</p>
       <MapContainer center={[lat, lng]} zoom={13} className="map">
+        <MapClickHandler onPickLocation={onPickLocation} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

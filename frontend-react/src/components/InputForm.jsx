@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 const defaultState = {
   latitude: "",
   longitude: "",
@@ -9,23 +7,32 @@ const defaultState = {
   surveyType: "parcel",
 };
 
-export default function InputForm({ onSubmit, loading }) {
-  const [form, setForm] = useState(defaultState);
+function parseOptionalNumber(value) {
+  if (value === "" || value === null || value === undefined) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+export default function InputForm({ onSubmit, loading, form, onFormChange }) {
+  const currentForm = {
+    ...defaultState,
+    ...(form || {}),
+  };
 
   function setValue(key, value) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    onFormChange(key, value);
   }
 
   function handleSubmit(event) {
     event.preventDefault();
 
     const payload = {
-      surveyNumber: form.surveyNumber || undefined,
-      villageId: form.villageId || undefined,
-      pincode: form.pincode || undefined,
-      surveyType: form.surveyType || undefined,
-      latitude: form.latitude !== "" ? Number(form.latitude) : undefined,
-      longitude: form.longitude !== "" ? Number(form.longitude) : undefined,
+      surveyNumber: currentForm.surveyNumber || undefined,
+      villageId: currentForm.villageId || undefined,
+      pincode: currentForm.pincode || undefined,
+      surveyType: currentForm.surveyType || undefined,
+      latitude: parseOptionalNumber(currentForm.latitude),
+      longitude: parseOptionalNumber(currentForm.longitude),
     };
 
     onSubmit(payload);
@@ -42,7 +49,7 @@ export default function InputForm({ onSubmit, loading }) {
           <input
             type="number"
             step="any"
-            value={form.latitude}
+            value={currentForm.latitude}
             onChange={(e) => setValue("latitude", e.target.value)}
             placeholder="12.9716"
           />
@@ -52,7 +59,7 @@ export default function InputForm({ onSubmit, loading }) {
           <input
             type="number"
             step="any"
-            value={form.longitude}
+            value={currentForm.longitude}
             onChange={(e) => setValue("longitude", e.target.value)}
             placeholder="77.5946"
           />
@@ -64,7 +71,7 @@ export default function InputForm({ onSubmit, loading }) {
           Survey Number
           <input
             type="text"
-            value={form.surveyNumber}
+            value={currentForm.surveyNumber}
             onChange={(e) => setValue("surveyNumber", e.target.value)}
             placeholder="12/3"
           />
@@ -73,7 +80,7 @@ export default function InputForm({ onSubmit, loading }) {
           Village ID
           <input
             type="text"
-            value={form.villageId}
+            value={currentForm.villageId}
             onChange={(e) => setValue("villageId", e.target.value)}
             placeholder="301001"
           />
@@ -82,7 +89,7 @@ export default function InputForm({ onSubmit, loading }) {
           Pincode
           <input
             type="text"
-            value={form.pincode}
+            value={currentForm.pincode}
             onChange={(e) => setValue("pincode", e.target.value)}
             placeholder="560001"
           />
@@ -91,7 +98,10 @@ export default function InputForm({ onSubmit, loading }) {
 
       <label>
         Survey Type
-        <select value={form.surveyType} onChange={(e) => setValue("surveyType", e.target.value)}>
+        <select
+          value={currentForm.surveyType}
+          onChange={(e) => setValue("surveyType", e.target.value)}
+        >
           <option value="parcel">Parcel</option>
           <option value="plot">Plot</option>
           <option value="land">Land</option>
