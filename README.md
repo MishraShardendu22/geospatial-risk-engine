@@ -332,9 +332,3 @@ Quick links:
 Project demo recording:
 
 - [Demo.mp4](Demo.mp4)
-
-Inline preview (if supported by your Markdown renderer):
-
-<video src="./Demo.mp4" controls width="900">
-	Your browser does not support embedded video playback. Use the direct link above.
-</video>
